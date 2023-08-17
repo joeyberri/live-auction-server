@@ -17,41 +17,54 @@ nms.run();
 
 // Start a new live stream
 exports.startLiveStream = async (req, res) => {
-  const { userId } = req;
-  const streamKey = generateUniqueStreamKey(); // Implement this function
+  // const { userId } = req;
+  const userId = 'J0207932004M'
 
   try {
-    //to be cleared
-    const userId = "J0207932004M";
-
+    const streamKey = generateUniqueStreamKey();
     const liveStream = new LiveStream({ userId, streamKey });
 
-    await liveStream.save().then(() => {
-      console.log('Live stream registered');
-    }).catch(err => console.error(err));
+    await liveStream.save();
 
-    // Publish the live stream using Node-Media-Server
-    try {
-      const session = nms.getSession(streamKey);
-      if (session) {
-        session.publish(streamKey);
-        res.json({ message: 'Live stream started.', streamKey });
-      } else {
-        res.status(400).json({ message: 'Stream session not found.' });
-      }
-    } catch (error) {
-      res.status(500).json({ message: 'Error starting live stream.' });
-    }
+    // Respond to the client
+    const rtmpUrl = `rtmp://${process.env.APP_BASE_URL}/live/${streamKey}`;
 
+    res.json({ message: 'Server provisioned.', data: { 'streamKey': streamKey, 'rtmpUrl': rtmpUrl } });
   } catch (error) {
-    res.status(500).json({ message: 'Error starting live stream.' });
+    // res.status(500).json({ message: 'Error starting live stream.' });
+    res.status(500).json({ message: error });
+  }
+};
+
+// View a live stream
+exports.viewLiveStream = async (req, res) => {
+  const streamKey = req.params.streamKey;
+
+  try {
+    // Retrieve the live stream by streamKey from the database
+    const liveStream = await LiveStream.findOne({ streamKey }).then(console.log('Live stream with stream key ' + streamKey + ' found'));
+
+    if (liveStream) {
+      
+      res.setHeader('Content-Type', 'video/x-flv'); 
+      const session = nms.getSession(streamKey);
+      console.log('Session is ' + session)
+      if (session) {
+        console.log('Session playing')
+        session.play(streamKey);
+        session.attach(req, res);
+      }
+    } else {
+      res.status(404).json({ message: 'Stream not found.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error viewing live stream.' });
   }
 };
 
 function generateUniqueStreamKey() {
   const timestamp = new Date().getTime();
-  const randomString = Math.random().toString(36).substring(2, 15); // Generate a random alphanumeric string
-  const uniqueKey = `${timestamp}_${randomString}`;
+  const randomString = Math.random().toString(36).substring(2, 15);
+  const uniqueKey = `PT-${randomString}_${timestamp}`;
   return uniqueKey;
 }
-// Implement other live stream-related actions
