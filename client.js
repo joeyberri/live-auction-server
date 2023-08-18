@@ -14,9 +14,9 @@ const $fsPublish = $('#fs_publish');
 const $fsSubscribe = $('#fs_subscribe');
 const $btnConnect = $('#btn_connect');
 const $btnWebcam = $('#btn_webcam');
-const $btnScreen = $('#btn_screen');
+// const $btnScreen = $('#btn_screen');
 const $btnSubscribe = $('#btn_subscribe');
-const $chkSimulcast = $('#chk_simulcast');
+// const $chkSimulcast = $('#chk_simulcast');
 const $txtConnection = $('#connection_status');
 const $txtWebcam = $('#webcam_status');
 const $txtScreen = $('#screen_status');
@@ -25,24 +25,23 @@ let $txtPublish;
 
 $btnConnect.addEventListener('click', connect);
 $btnWebcam.addEventListener('click', publish);
-$btnScreen.addEventListener('click', publish);
 $btnSubscribe.addEventListener('click', subscribe);
 
 if (typeof navigator.mediaDevices.getDisplayMedia === 'undefined') {
   $txtScreen.innerHTML = 'Not supported';
-  $btnScreen.disabled = true;
 }
 
 async function connect() {
   $btnConnect.disabled = true;
   $txtConnection.innerHTML = 'Connecting...';
-
+  
   const opts = {
     path: '/server',
     transports: ['websocket'],
   };
-
+  
   const serverUrl = `https://${hostname}:${config.listenPort}`;
+  console.log("SERVER URL IS " + serverUrl);
   socket = socketClient(serverUrl, opts);
   socket.request = socketPromise(socket);
 
@@ -123,21 +122,21 @@ async function publish(e) {
         $txtPublish.innerHTML = 'publishing...';
         $fsPublish.disabled = true;
         $fsSubscribe.disabled = true;
-      break;
+        break;
 
       case 'connected':
         document.querySelector('#local_video').srcObject = stream;
         $txtPublish.innerHTML = 'published';
         $fsPublish.disabled = true;
         $fsSubscribe.disabled = false;
-      break;
+        break;
 
       case 'failed':
         transport.close();
         $txtPublish.innerHTML = 'failed';
         $fsPublish.disabled = false;
         $fsSubscribe.disabled = true;
-      break;
+        break;
 
       default: break;
     }
@@ -148,16 +147,7 @@ async function publish(e) {
     stream = await getUserMedia(transport, isWebcam);
     const track = stream.getVideoTracks()[0];
     const params = { track };
-    if ($chkSimulcast.checked) {
-      params.encodings = [
-        { maxBitrate: 100000 },
-        { maxBitrate: 300000 },
-        { maxBitrate: 900000 },
-      ];
-      params.codecOptions = {
-        videoGoogleStartBitrate : 1000
-      };
-    }
+
     producer = await transport.produce(params);
   } catch (err) {
     $txtPublish.innerHTML = 'failed';

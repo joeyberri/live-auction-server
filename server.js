@@ -4,6 +4,7 @@ const https = require('https');
 const express = require('express');
 const socketIO = require('socket.io');
 const config = require('./config');
+const liveStreamRoutes = require('./routes/liveStreamRoutes');
 
 // Global variables
 let worker;
@@ -32,18 +33,19 @@ async function runExpressApp() {
   expressApp.use(express.json());
   expressApp.use(express.static(__dirname));
 
-  expressApp.use((error, req, res, next) => {
-    if (error) {
-      console.warn('Express app error,', error.message);
-
-      error.status = error.status || (error.name === 'TypeError' ? 400 : 500);
-
-      res.statusMessage = error.message;
-      res.status(error.status).send(String(error));
-    } else {
-      next();
-    }
-  });
+  expressApp.use('/live-stream', liveStreamRoutes);
+//   expressApp.use((error, req, res, next) => {
+//     if (error) {
+//       console.warn('Server error,', error.message);
+// 
+//       error.status = error.status || (error.name === 'TypeError' ? 400 : 500);
+// 
+//       res.statusMessage = error.message;
+//       res.status(error.status).send(String(error));
+//     } else {
+//       next();
+//     }
+//   });
 }
 
 async function runWebServer() {
