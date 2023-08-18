@@ -4,6 +4,7 @@ const https = require('https');
 const express = require('express');
 const socketIO = require('socket.io');
 const config = require('./config');
+require('./config/db');
 const liveStreamRoutes = require('./routes/liveStreamRoutes');
 
 // Global variables
@@ -34,18 +35,6 @@ async function runExpressApp() {
   expressApp.use(express.static(__dirname));
 
   expressApp.use('/live-stream', liveStreamRoutes);
-//   expressApp.use((error, req, res, next) => {
-//     if (error) {
-//       console.warn('Server error,', error.message);
-// 
-//       error.status = error.status || (error.name === 'TypeError' ? 400 : 500);
-// 
-//       res.statusMessage = error.message;
-//       res.status(error.status).send(String(error));
-//     } else {
-//       next();
-//     }
-//   });
 }
 
 async function runWebServer() {
@@ -68,6 +57,7 @@ async function runWebServer() {
     webServer.listen(listenPort, listenIp, () => {
       const listenIps = config.mediasoup.webRtcTransport.listenIps[0];
       const ip = listenIps.announcedIp || listenIps.ip;
+      // const ip = "192.168.100.23"
       console.log('server is running');
       console.log(`open https://${ip}:${listenPort} in your web browser`);
       resolve();
@@ -135,7 +125,7 @@ async function runSocketServer() {
     });
 
     socket.on('produce', async (data, callback) => {
-      const {kind, rtpParameters} = data;
+      const { kind, rtpParameters } = data;
       producer = await producerTransport.produce({ kind, rtpParameters });
       callback({ id: producer.id });
 

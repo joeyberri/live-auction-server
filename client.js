@@ -2,6 +2,7 @@ const mediasoup = require('mediasoup-client');
 const socketClient = require('socket.io-client');
 const socketPromise = require('./lib/socket.io-promise').promise;
 const config = require('./config');
+require('dotenv').config();
 
 const hostname = window.location.hostname;
 
@@ -34,12 +35,12 @@ if (typeof navigator.mediaDevices.getDisplayMedia === 'undefined') {
 async function connect() {
   $btnConnect.disabled = true;
   $txtConnection.innerHTML = 'Connecting...';
-  
+
   const opts = {
     path: '/server',
     transports: ['websocket'],
   };
-  
+
   const serverUrl = `https://${hostname}:${config.listenPort}`;
   console.log("SERVER URL IS " + serverUrl);
   socket = socketClient(serverUrl, opts);
