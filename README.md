@@ -15,7 +15,7 @@ The Live Auction Server is a Node.js-based backend solution that powers real-tim
 
 ## Features
 
-- User authentication using Poynt Auth Microservice.
+- User authentication.
 - Real-time live streaming for auctions.
 - Interactive chat functionality during live sessions.
 - Dynamic stream management for efficient broadcasting.
